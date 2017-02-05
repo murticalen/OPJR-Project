@@ -76,5 +76,45 @@ ggplot(awayTeamGoals, aes(x = awayScored, y = awayConceded)) + geom_text(aes(lab
 
 ```
 
+```{r}
+group_by(bl, HST, FTHG, HC) %>% summarise(Count = n()) -> temp
+ggplot(temp, aes(x = HST, y = FTHG)) + geom_smooth(method = loess) + geom_point(aes(size = Count, color = HC))
 
+group_by(bl, AST, FTAG, AC) %>% summarise(Count = n()) -> temp
+ggplot(temp, aes(x = AST, y = FTAG)) + geom_smooth(method = loess) + geom_point(aes(size = Count, color = AC))
+```
+
+```{r}
+group_by(bl, HC, AC) %>% summarise(Count = n()) -> temp
+ggplot(temp, aes(x = HC, y = AC, color = Count, size = Count)) + geom_point() + geom_smooth(method = lm)
+```
+
+```{r}
+group_by(bl, HomeTeam, FTR) %>% summarise(Count = n()) -> homeTeamResults
+
+ggplot(homeTeamResults, aes(x = FTR, y = HomeTeam)) + geom_label(aes(label = Count, color = Count, size = Count))
+```
+
+```{r}
+group_by(bl, AwayTeam, FTR) %>% summarise(Count = n()) -> awayTeamResults
+
+ggplot(awayTeamResults, aes(x = FTR, y = AwayTeam)) + geom_label(aes(label = Count, color = Count, size = Count))
+```
+
+```{r}
+ggplot(bl, aes(x = FTR, y = FTHG + FTAG)) + geom_boxplot()
+```
+
+
+```{r}
+group_by(bl, HomeTeam) %>% summarise(Games = n(), Total = sum(FTHG + FTAG)) -> homeGoalsPerGame
+ggplot(homeGoalsPerGame, aes(x = HomeTeam, y = Total/Games)) + geom_col(aes(fill = Total/Games)) + coord_flip()
+```
+
+
+
+```{r}
+group_by(bl, AwayTeam) %>% summarise(Games = n(), Total = sum(FTHG + FTAG)) -> awayGoalsPerGame
+ggplot(awayGoalsPerGame, aes(x = AwayTeam, y = Total/Games)) + geom_col(aes(fill = Total/Games)) + coord_flip()
+```
 
