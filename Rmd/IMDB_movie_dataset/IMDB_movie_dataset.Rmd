@@ -1,102 +1,141 @@
 ---
 title: "IMDB_movie_dataset"
-author: "Mario Slatinac"
+author: "Mario Slatinac, Alen Murtić"
 date: '5 veljače 2017 '
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(data.table)
 ```
 
-## IMDB
+## IMDB movie dataset
 
 
 ```{r}
 data <- read.csv("../../data/IMDB_movie_dataset.csv", encoding="UTF-8")
 ```
 
+Pregled strukture podatkovnog skupa.
 ```{r}
-head(data)
 str(data)
 ```
 
 ```{r}
-ggplot(data, aes(title_year)) + geom_histogram(binwidth = 1) + labs(x="Godina", y="Broj filmova", title="Broj filmova po godinama") 
+ggplot(data, aes(title_year)) + geom_histogram(binwidth = 1) + labs(x = "Godina", y =
+                                                                      "Broj filmova", title = "Broj filmova po godinama") 
 ```
 
 ```{r}
-ggplot(data, aes(imdb_score)) + geom_histogram(binwidth = 0.2) + labs(x="IMDB ocjena", title = "Broj filmova u odnosu na ocjenu")
-```
-
-
-```{r}
-ggplot(data, aes(duration)) + geom_histogram(binwidth = 5) + labs(x="Trajanje filma u minutama", title="Broj filmova u odnosu na trajnje")
+ggplot(data, aes(imdb_score)) + geom_histogram(binwidth = 0.2) + labs(x =
+                                                                        "IMDB ocjena", title = "Broj filmova u odnosu na ocjenu")
 ```
 
 
 ```{r}
-ggplot(data,aes(content_rating)) + geom_bar() + theme(axis.text.x = element_text(angle = 45)) + labs(x="Prema ocjeni sadržaja", title="Broj filmova prema ocjeni sadržaja")
-```
-
-```{r}
-ggplot(data,aes(title_year, fill=color)) + geom_bar(position = "identity", alpha = 0.5) + theme(axis.text.x = element_text(angle = 45)) + labs(x="Godina", title="Broj filmova prema boji u odnosu na godine.")
+ggplot(data, aes(duration)) + geom_histogram(binwidth = 5) + labs(x = "Trajanje filma u minutama", title =
+                                                                    "Broj filmova u odnosu na trajnje")
 ```
 
 
 ```{r}
-  director <- data.frame(table(data$director_name))
-  director <- director[-c(1),]
-  director <- director[order(director$Freq, decreasing = TRUE),]
+ggplot(data, aes(content_rating)) + geom_bar() + theme(axis.text.x = element_text(angle = 45)) + labs(x =
+                                                                                                        "Prema ocjeni sadržaja", title = "Broj filmova prema ocjeni sadržaja")
+```
+
+```{r}
+ggplot(data, aes(title_year, fill = color)) + geom_bar(position = "identity", alpha = 0.5) + theme(axis.text.x = element_text(angle = 45)) + labs(x =
+                                                                                                                                                    "Godina", title = "Broj filmova prema boji u odnosu na godine.")
+```
+
+
+```{r}
+director <- data.frame(table(data$director_name))
+director <- director[-c(1),]
+director <- director[order(director$Freq, decreasing = TRUE),]
+
+names(director)[1] <- "director_name"
+```
+
+```{r}
+ggplot(director[1:10, ], aes(
+  x = reorder(factor(director_name), Freq),
+  y = Freq,
+  alpha = Freq
+  )) + geom_bar(stat = "identity", fill = "blue") + coord_flip() + labs(
+  x = "Redatelj",
+  y = "Broj filmova",
+  title = "Top 10 redatelja s najviše snimljenih filmova" ,
+  alpha = "Frekvencija"
+  )
+```
+
+```{r}
+actor_1 <- data.frame(table(data$actor_1_name))
+actor_1 <- actor_1[order(actor_1$Freq, decreasing = TRUE),]
+names(actor_1)[1] <- "actor_name"
   
-  names(director)[1] <- "director_name"
 ```
 
 ```{r}
-  ggplot(director[1:10,], aes(x=reorder(factor(director_name), Freq), y=Freq, alpha=Freq)) + geom_bar(stat="identity",fill="blue") + coord_flip() + labs(x="Redatelj", y = "Broj filmova", title="Top 10 redatelja s najviše snimljenih filmova" , alpha="Frekvencija")
+ggplot(actor_1[1:10, ], aes(reorder(factor(actor_name), Freq), Freq, alpha = Freq)) + geom_bar(stat =
+                                                                                                 "identity", fill = "red") + coord_flip() + labs(
+                                                                                                 x = "Glumac",
+                                                                                                 y = "Broj filmova",
+                                                                                                 title = "Top 10 glumaca koji su glumili glavnu ulogu u filmovima.",
+                                                                                                 alpha = "Frekvencija"
+                                                                                                 )
 ```
 
 ```{r}
-  actor_1 <- data.frame(table(data$actor_1_name))
-  actor_1 <- actor_1[order(actor_1$Freq, decreasing = TRUE),]
-  names(actor_1)[1] <- "actor_name"
-  
+country <- data.frame(table(data$country))
+country <- country[order(country$Freq, decreasing = TRUE), ]
+names(country)[1] <- "country"
 ```
 
 ```{r}
-  ggplot(actor_1[1:10,], aes(reorder(factor(actor_name),Freq), Freq, alpha = Freq)) + geom_bar(stat="identity",fill="red") + coord_flip() + labs(x="Glumac", y = "Broj filmova", title="Top 10 glumaca koji su glumili glavnu ulogu u filmovima.", alpha="Frekvencija")
+ggplot(country[1:10, ], aes(reorder(factor(country), Freq), Freq, alpha =
+                              Freq)) + geom_bar(stat = "identity", fill = "red") + coord_flip() + labs(
+                              x = "Država",
+                              y = "Broj filmova",
+                              title = "Top 10 država s najviše snimljenih filmova.",
+                              alpha = "Frekvencija"
+                              )
+```
+```{r}
+imdb_scores_country = as.data.table(subset(data, data$country != ''  &
+                                             data$num_voted_users > 100000))
+                                             imdb_scores_country = imdb_scores_country[, mean(imdb_score), by = country]
+                                             names(imdb_scores_country) = c("country", "average_score")
+                                             
+                                             imdb_scores_country = imdb_scores_country[order(imdb_scores_country$average_score, decreasing = TRUE), ]
 ```
 
 ```{r}
-  country <- data.frame(table(data$country))
-  country <- country[order(country$Freq, decreasing = TRUE),]
-  names(country)[1] <- "country"
-```
-
-```{r}
-  ggplot(country[1:10,], aes(reorder(factor(country),Freq), Freq, alpha=Freq)) + geom_bar(stat="identity",fill="red") + coord_flip() + labs(x="Država", y="Broj filmova", title="Top 10 država s najviše snimljenih filmova.", alpha="Frekvencija")
-```
-```{r}
-imdb_scores_country = as.data.table(subset(data, data$country != ''  & data$num_voted_users > 100000))
-  imdb_scores_country = imdb_scores_country[, mean(imdb_score), by=country]
-  names(imdb_scores_country) = c("country", "average_score")
-  
-  imdb_scores_country = imdb_scores_country[order(imdb_scores_country$average_score, decreasing = TRUE),]
-```
-
-```{r}
-  ggplot(imdb_scores_country[1:10,], aes(reorder(factor(country),average_score), average_score, alpha=average_score)) + geom_bar(stat="identity",fill="red") + coord_flip() + labs(x="Država", y="Prosjek", title="Top 10 država s prema IMDB prosječnoj ocjeni (br. glasova > 100000)", alpha="IMDB prosjek")
+ggplot(imdb_scores_country[1:10, ],
+       aes(reorder(factor(country), average_score), average_score, alpha = average_score)) + geom_bar(stat =
+       "identity", fill = "red") + coord_flip() + labs(
+       x = "Država",
+       y = "Prosjek",
+       title = "Top 10 država s prema IMDB prosječnoj ocjeni (br. glasova > 100000)",
+       alpha = "IMDB prosjek"
+       )
 
 ```
 
 
 
 ```{r}
-  imdb_scores_director = as.data.table(subset(data, data$director_name != ''  & data$num_voted_users > 100000))
-  imdb_scores_director = imdb_scores_director[, mean(imdb_score), by=director_name]
-  names(imdb_scores_director) = c("director_name", "average_score")
-  
-  imdb_scores_director = imdb_scores_director[order(imdb_scores_director$average_score, decreasing = TRUE),]
+imdb_scores_director = as.data.table(subset(data, data$director_name != ''  &
+                                              data$num_voted_users > 100000))
+                                              imdb_scores_director = imdb_scores_director[, mean(imdb_score), by = director_name]
+                                              names(imdb_scores_director) = c("director_name", "average_score")
+                                              
+                                              imdb_scores_director = imdb_scores_director[order(imdb_scores_director$average_score, decreasing = TRUE), ]
 
 ```
 
@@ -107,15 +146,21 @@ imdb_scores_country = as.data.table(subset(data, data$country != ''  & data$num_
 
 
 ```{r}
-  imdb_scores_year = as.data.table(subset(data, data$title_year != '' & data$num_voted_users > 100000))
-  imdb_scores_year = imdb_scores_year[, mean(imdb_score), by=title_year]
-  names(imdb_scores_year) = c("year", "average_score")
-  
-  imdb_scores_year = imdb_scores_year[order(imdb_scores_year$average_score, decreasing = TRUE),]
+imdb_scores_year = as.data.table(subset(data, data$title_year != '' &
+                                        data$num_voted_users > 100000))
+                                        imdb_scores_year = imdb_scores_year[, mean(imdb_score), by = title_year]
+                                        names(imdb_scores_year) = c("year", "average_score")
+                                        
+                                        imdb_scores_year = imdb_scores_year[order(imdb_scores_year$average_score, decreasing = TRUE), ]
 ```
 
 ```{r}
-  ggplot(imdb_scores_year[1:10,], aes(reorder(factor(year),average_score), average_score, alpha=average_score)) + geom_bar(stat="identity",fill="red") + coord_flip() + labs(x="Redatelj", y="Prosjek", title="Top 10 godina s prema IMDB prosječnoj ocjeni0 (br. glasova > 100000) ", alpha="IMDB prosjek")
-
+ggplot(imdb_scores_year[1:10,],
+       aes(reorder(factor(year), average_score), average_score, alpha = average_score)) + geom_bar(stat =
+       "identity", fill = "red") + coord_flip() + labs(x = "Redatelj",
+       y = "Prosjek",
+       title = "Top 10 godina s prema IMDB prosječnoj ocjeni (br. glasova > 100000) ",
+       alpha = "IMDB prosjek")
 ```
+
 
