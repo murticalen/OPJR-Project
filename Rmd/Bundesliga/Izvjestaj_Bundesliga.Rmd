@@ -1,16 +1,18 @@
 ---
-title: "Analiza utakmica Bundeslige od sezone početka 2014-15 do 01.02.2017."
+title: "Analiza utakmica Bundeslige od sezone poĂ„Ĺ¤etka 2014-15 do 01.02.2017."
 author: "Alen Murtic, Mario Slatinac"
-date: '5 veljače 2017 '
-output: pdf_document
+date: '5 veljaĂ„Ĺ¤e 2017 '
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
-source("./../R/BL_data_adjust.R")
+source("./../../R/BL_data_adjust.R")
 ggpairsPlt <- ggpairs(blreduced, lower=list(combo=wrap("facethist", binwidth=1)))
-ggsave(plot = ggpairsPlt, filename = './../figures/BL/ggpairs.png')
+ggsave(plot = ggpairsPlt, filename = './../../figures/BL/ggpairs.png')
 ```
 
 # Upoznavanje s podatkovnim skupom
@@ -50,6 +52,8 @@ select(bl, FTR) %>% group_by(FTR) %>% summarize(Count = n()) -> results
 results
 ```
 
+\pagebreak
+
 Na sljedećim grafovima vidimo broj domaćina/gosta za pojedini ishod utakmice:
 
 ```{r}
@@ -62,6 +66,7 @@ g2 <- ggplot(bl, aes(x = FTR)) + geom_bar(aes(fill = FTAG)) +
 grid.arrange(g1, g2, nrow = 1, ncol = 2)
 ```
 \pagebreak
+
 Iste podatke možemo pogledati na drukčiji način, tako da za pojedini broj golova domaćina ili gosta promatramo ishode:
 
 ```{r}
@@ -120,10 +125,10 @@ Sljedeći graf prikazuje odnos broja udaraca na gol domaćina/gosta te postignut
 
 ```{r}
 group_by(bl, HST, FTHG, HC) %>% summarise(Count = n()) -> temp
-g1 <- ggplot(temp, aes(x = HST, y = FTHG)) + geom_smooth(method = loess) + geom_point(aes(size = Count, color = HC)) + labs(x = "Broj udaraca domacina na gol", y = "Broj zabijenih golova domacina", title = "Odnos udaraca na gol i postignutih golova domacina", size = "Broj slucajeva", color = "Broj slucajeva")
+g1 <- ggplot(temp, aes(x = HST, y = FTHG)) + geom_smooth(method = loess) + geom_point(aes(size = Count)) + labs(x = "Broj udaraca domacina na gol", y = "Broj zabijenih golova domacina", title = "Odnos udaraca na gol i postignutih golova domacina", size = "Broj slucajeva")
 
 group_by(bl, AST, FTAG, AC) %>% summarise(Count = n()) -> temp
-g2 <- ggplot(temp, aes(x = AST, y = FTAG)) + geom_smooth(method = loess) + geom_point(aes(size = Count, color = AC)) + labs(x = "Broj udaraca gosta na gol", y = "Broj zabijenih golova gosta", title = "Odnos udaraca na gol i postignutih golova gosta", size = "Broj slucajeva", color = "Broj slucajeva")
+g2 <- ggplot(temp, aes(x = AST, y = FTAG)) + geom_smooth(method = loess) + geom_point(aes(size = Count)) + labs(x = "Broj udaraca gosta na gol", y = "Broj zabijenih golova gosta", title = "Odnos udaraca na gol i postignutih golova gosta", size = "Broj slucajeva")
 grid.arrange(g1, g2, nrow = 2, ncol = 1)
 ```
 \pagebreak
