@@ -1,10 +1,8 @@
 ---
-title: "OPJR Projekt"
-author: "Alen Murtic, Mario Slatinac"
-date: '5 veljaÄŤe 2017 '
-output:
-  html_document: default
-  pdf_document: default
+title: "HR_StanPremaSpoluStarosti"
+author: "Mario Slatinac"
+date: '5 veljače 2017 '
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
