@@ -1,0 +1,13 @@
+library('tidyverse')
+library(GGally)
+library(lubridate)
+library(stringr)
+bl <- read.csv(file = "./../data/BL-14-17.csv", stringsAsFactors = F)
+select(bl, c(Date, HomeTeam, AwayTeam, FTHG, FTAG, FTR, HS, AS, HST, AST, HC, AC)) -> bl
+bl$HomeTeam <- as.factor(bl$HomeTeam)
+bl$AwayTeam <- as.factor(bl$AwayTeam)
+bl$FTR <- as.factor(bl$FTR)
+bl$FTHG <- as.factor(bl$FTHG)
+bl$FTAG <- as.factor(bl$FTAG)
+bl$Date <- dmy(bl$Date)
+blreduced <- select(bl, -Date, -HomeTeam, -AwayTeam)
