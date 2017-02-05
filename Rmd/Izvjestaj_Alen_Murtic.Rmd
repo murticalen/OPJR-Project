@@ -17,9 +17,9 @@ ggsave(plot = ggpairsPlt, filename = './../figures/BL/ggpairs.png')
 
 Podatkovni skup preuzet je sa stranice http://www.football-data.co.uk/ te je detaljnije opisan u službenim uputama http://www.football-data.co.uk/notes.txt.
 
-Najprije pozivamo naredbe summary, glimpse i ggpairs kako bi vidjeti osnovne podatke o varijablama.
+Najprije pozivamo naredbe summary i ggpairs kako bi vidjeti osnovne podatke o varijablama.
 
-```{r cars}
+```{r}
 summary(bl)
 #glimpse(bl)
 ggpairsPlt
@@ -31,36 +31,52 @@ teams <- unique(as.character(bl$HomeTeam))
 cat("U ligi je u navedene tri sezone nastupilo ",length(teams)," različitih klubova. Oni su: ")
 teams
 ```
+\pagebreak
 
-# Analiza osnovnih podataka
-
-## Analiza broja golova i rezultata
+# Analiza broja golova i rezultata
 
 U sljedećih nekoliko grafova bit će prikazan broj golova domaćina/gosta u odnosu na ishod utakmice. Dobiveni grafovi imaju smisla budući da je postoji prednost domaćeg terena, a najmanje je vjerojatno da obje momčadi zabiju jednake broj golova.
 
 A predstavlja pobjedu gosta (away), D neodlučen rezultat (draw), a H pobjedu domaćina (home).
 
-Prilično očita informacija na grafovima je da bilo koja, domaća ili gostujuća, momčad mora zabiti više od 1 gola da joj najvjerojatniji ishod ne bi bio poraz. I to semantički ima smisla jer je Bundesliga jedna od najatraktivnijih europskih liga po broj golova. 
 
-```{r pressure}
-knitr::opts_chunk$set(echo = TRUE)
+```{r}
 ggplot(bl, aes(x = FTR)) + geom_bar(aes(fill = FTR)) +
-  labs(x = "Rezultat utakmice", y = "Broj slucajeva", fill = "Rezultat utakmice")
-ggplot(bl, aes(x = FTR)) + geom_bar(aes(fill = FTHG)) +
-  labs(x = "Rezultat utakmice", y = "Broj slucajeva", fill = "Golova domacina")
-ggplot(bl, aes(x = FTR)) + geom_bar(aes(fill = FTAG)) +
-  labs(x = "Rezultat utakmice", y = "Broj slucajeva", fill = "Golova gosta")
-ggplot(bl, aes(x = FTHG)) + geom_bar(aes(fill = FTR)) +
-  labs(x = "Golova domacina", y = "Broj slucajeva", fill = "Rezultat utakmice")
-ggplot(bl, aes(x = FTAG)) + geom_bar(aes(fill = FTR)) +
-  labs(x = "Golova gosta", y = "Broj slucajeva", fill = "Rezultat utakmice")
+  labs(x = "Ishod utakmice", y = "Broj slucajeva", fill = "Ishod utakmice", title = "Ucestalost pojedninog ishoda utakmica")
 ```
-
-Nakon čega dobivamo konkretne brojke pojavljivanja pojedinog ishoda utakmice:
+Nakon čega možemo pogledati konkretne brojke pojavljivanja pojedinog ishoda utakmice:
 ```{r}
 select(bl, FTR) %>% group_by(FTR) %>% summarize(Count = n()) -> results
 results
 ```
+
+Na sljedećim grafovima vidimo broj domaćina/gosta za pojedini ishod utakmice:
+
+```{r}
+
+g1 <- ggplot(bl, aes(x = FTR)) + geom_bar(aes(fill = FTHG)) +
+  labs(x = "Ishod utakmice", y = "Broj slucajeva", fill = "Golova H", title = "Odnos golova domacina i ishoda utakmica")
+
+g2 <- ggplot(bl, aes(x = FTR)) + geom_bar(aes(fill = FTAG)) +
+  labs(x = "Ishod utakmice", y = "Broj slucajeva", fill = "Golova A", title = "Odnos golova gosta i ishoda utakmica")
+grid.arrange(g1, g2, nrow = 1, ncol = 2)
+```
+\pagebreak
+Iste podatke možemo pogledati na drukčiji način, tako da za pojedini broj golova domaćina ili gosta promatramo ishode:
+
+```{r}
+g1 <- ggplot(bl, aes(x = FTHG)) + geom_bar(aes(fill = FTR)) +
+  labs(x = "Golova domacina", y = "Broj slucajeva", fill = "Ishod", title = "Odnos golova domacina i ishoda utakmica")
+
+g2 <- ggplot(bl, aes(x = FTAG)) + geom_bar(aes(fill = FTR)) +
+  labs(x = "Golova gosta", y = "Broj slucajeva", fill = "Ishod", title = "Odnos golova gosta i ishoda utakmica")
+grid.arrange(g1, g2, nrow = 1, ncol = 2)
+```
+Prilično očita informacija na grafovima je da bilo koja, domaća ili gostujuća, momčad mora zabiti više od 1 gola da joj najvjerojatniji ishod ne bi bio poraz. I to semantički ima smisla jer je Bundesliga jedna od najatraktivnijih europskih liga po ukupnom broju golova. 
+
+\pagebreak
+
+No, znamo da sve momčadi u projecima ne sudjeluju jednako te sljedeća dva grafa prikazuju kako momčad zabija/prima golove kad je domaćin, odnosno gost:
 
 ```{r}
 bl$FTHG <- as.numeric(bl$FTHG)
@@ -68,53 +84,104 @@ bl$FTAG <- as.numeric(bl$FTAG)
 
 group_by(bl, HomeTeam) %>% summarize(homeScored = mean(FTHG), homeConceded = mean(FTAG), hgames = n(), hscored = sum(FTHG), hconceded = sum(FTAG)) %>% arrange(desc(homeScored)) %>% as.data.frame() -> homeTeamGoals
 
-ggplot(homeTeamGoals, aes(x = homeScored, y = homeConceded)) + geom_text(aes(label = HomeTeam),hjust=0, vjust=0) + scale_x_continuous(limits = c(1.8, 4.5)) + geom_point()
+ggplot(homeTeamGoals, aes(x = homeScored, y = homeConceded)) + geom_text(aes(label = HomeTeam),hjust=0, vjust=0) + scale_x_continuous(limits = c(1.8, 4.5)) + geom_point() + labs(x = "Prosjek postignutih golova domacina", y = "Prosjek primljenih golova domacina", title = "Odnos zabijenih i primljenih golova kad je momcad domacin") + geom_smooth(method = lm)
+```
 
+```{r}
 group_by(bl, AwayTeam) %>% summarize(awayScored = mean(FTAG), awayConceded = mean(FTHG), agames = n(), awscored = sum(FTAG), awconceded = sum(FTHG)) %>% arrange(desc(awayScored)) %>% as.data.frame() -> awayTeamGoals
 
-ggplot(awayTeamGoals, aes(x = awayScored, y = awayConceded)) + geom_text(aes(label = AwayTeam),hjust=0, vjust=0) + scale_x_continuous(limits = c(1.55, 3.2)) + geom_point()
+ggplot(awayTeamGoals, aes(x = awayScored, y = awayConceded)) + geom_text(aes(label = AwayTeam),hjust=0, vjust=0) + scale_x_continuous(limits = c(1.55, 3.2)) + geom_point() + labs(x = "Prosjek postignutih golova gosta", y = "Postojek primljenih golova gosta u prosjeku", title = "Odnos zabijenih i primljenih golova kad je momcad gost")
 
 ```
+
+Iz njih je očito da je Bayern klasa za sebe, prima najmanje i zabija najviše golova u oba slučaja.
+Zanimljivo je da se golovi momčadi na domaćem terenu ponašaju praktički linearno, uopće nisam planirao nacrati pravac preko podataka, ali nakon pogleda na graf, bilo je očito da tako mora biti.
+S druge strane, golovi momčadi u gostima su nabijeni u sredinu grafa, a outlieri su 3 najbolje momčadi (Bayern, Dortmund i Leipzig - mali uzorak za RBL), 2 momčadi koje su ispale u drugu ligu (Stuttgart i Paderborn) te jedna koja godinama zabija i prima puno golova (Werder).
+
+\pagebreak
+
+# Analiza podataka o udarcima i kornerima
+
+Na ovom grafu prikazan je odnos ukupnog broja udaraca i broja udaraca na gol za domaćine, odnosno goste. Eliminirani su podaci kad momčad ima više od 30 udaraca (bilo ih je nekoliko), s ciljem što usporedljivjijeg skaliranja. Na grafu vidimo da domaćini na gol pucaju nešto češće, ali značajno preciznije.
+
+```{r}
+filter(bl, HS < 30) %>% group_by(HST, HS) %>% summarise(Count = n()) -> temp
+g1 <- ggplot(temp, aes(x = HS, y = HST)) + geom_smooth(method = lm) + geom_point(aes(size = Count, color = Count)) + labs(x = "Broj udaraca domacina", y = "Broj udaraca na gol", title = "Odnos udaraca i udaraca na gol domacina", size = "Broj slucajeva", color = "Broj slucajeva")
+
+filter(bl, AST < 30) %>% group_by(AST, AS) %>% summarise(Count = n()) -> temp
+g2 <- ggplot(temp, aes(x = AS, y = AST)) + geom_smooth(method = lm) + geom_point(aes(size = Count, color = Count)) + labs(x = "Broj udaraca gosta", y = "Broj udaraca na gol", title = "Odnos udaraca i udaraca na gol gosta", size = "Broj slucajeva", color = "Broj slucajeva")
+grid.arrange(g1, g2, nrow = 2, ncol = 1)
+```
+
+
+\pagebreak
+
+Sljedeći graf prikazuje odnos broja udaraca na gol domaćina/gosta te postignutih golova iste momčadi. Primjetno je da u realizaciji prilika nema nikakve razlike, jedino u dolasku do istih ako pogledamo desne strane grafa budući da se rijetko događa da gost uputi više od 5 udaraca na gol.
 
 ```{r}
 group_by(bl, HST, FTHG, HC) %>% summarise(Count = n()) -> temp
-ggplot(temp, aes(x = HST, y = FTHG)) + geom_smooth(method = loess) + geom_point(aes(size = Count, color = HC))
+g1 <- ggplot(temp, aes(x = HST, y = FTHG)) + geom_smooth(method = loess) + geom_point(aes(size = Count, color = HC)) + labs(x = "Broj udaraca domacina na gol", y = "Broj zabijenih golova domacina", title = "Odnos udaraca na gol i postignutih golova domacina", size = "Broj slucajeva", color = "Broj slucajeva")
 
 group_by(bl, AST, FTAG, AC) %>% summarise(Count = n()) -> temp
-ggplot(temp, aes(x = AST, y = FTAG)) + geom_smooth(method = loess) + geom_point(aes(size = Count, color = AC))
+g2 <- ggplot(temp, aes(x = AST, y = FTAG)) + geom_smooth(method = loess) + geom_point(aes(size = Count, color = AC)) + labs(x = "Broj udaraca gosta na gol", y = "Broj zabijenih golova gosta", title = "Odnos udaraca na gol i postignutih golova gosta", size = "Broj slucajeva", color = "Broj slucajeva")
+grid.arrange(g1, g2, nrow = 2, ncol = 1)
 ```
+\pagebreak
+
+Sljedeći graf prikazuje odnos broja kornera domaće i gostujuće momčadi, kao što možemo vidjeti, oni su obrnuto proporcionalni.
 
 ```{r}
 group_by(bl, HC, AC) %>% summarise(Count = n()) -> temp
-ggplot(temp, aes(x = HC, y = AC, color = Count, size = Count)) + geom_point() + geom_smooth(method = lm)
+ggplot(temp, aes(x = HC, y = AC, color = Count, size = Count)) + geom_point() + geom_smooth(method = lm) + labs(x = "Broj kornera domacina", y = "Broj kornera gosta", title = "Odnos kornera domacina i gosta", size = "Broj slucajeva", color = "Broj slucajeva")
+cat("Korelacija domaćih i gostujućih kornera:", cor(temp$HC, temp$AC))
 ```
+\pagebreak
+
+# Ishodi utakmica svake momčadi
+
+Naravno, najzanimljiviji aspekt analize sportskih podataka je predviđanje pobjednika. Budući da je ovo eksplorativna, a ne prediktivna analiza podataka, nećemo se baviti prediđanjem, no zanimljivo je pogledati koje su rezultate momčadi imale u postekle 2 i pol sezone.
 
 ```{r}
 group_by(bl, HomeTeam, FTR) %>% summarise(Count = n()) -> homeTeamResults
 
-ggplot(homeTeamResults, aes(x = FTR, y = HomeTeam)) + geom_label(aes(label = Count, color = Count, size = Count))
+ggplot(homeTeamResults, aes(x = FTR, y = HomeTeam)) + geom_label(aes(label = Count, color = Count, size = Count)) + labs(x = "Ishod utakmice", y = "Domacin", title = "Rezultati pojedine momcadi na domacem terenu", size = "Broj slucajeva", color = "Broj slucajeva")
 ```
 
 ```{r}
 group_by(bl, AwayTeam, FTR) %>% summarise(Count = n()) -> awayTeamResults
 
-ggplot(awayTeamResults, aes(x = FTR, y = AwayTeam)) + geom_label(aes(label = Count, color = Count, size = Count))
+ggplot(awayTeamResults, aes(x = FTR, y = AwayTeam)) + geom_label(aes(label = Count, color = Count, size = Count)) + labs(x = "Ishod utakmice", y = "Gost", title = "Rezultati pojedine momcadi na gostujucem terenu", size = "Broj slucajeva", color = "Broj slucajeva")
 ```
+
+Iz estetike grafa očito je da je Bayern nadominantnija momčad na gostujućem terenu jer je većina protivnika podjednako loša na gostujućim terenima, iako se vidi razlika u kvaliteti momčadi prema čuvanju domaćeg terena. U ovom slučaju mali uzorak Leipziga znači da je svrstan među lošije momčadi. 
+
+\pagebreak
+
+Sljedeći graf je izuzetno zanimljiv, on pokazuje da je ukupan broj golova u pobjedama domaćina i gosta podjednak, dok je broj golova u neodlučenim rezultatima manji. To je prikazano na dva načina, klasičnim prebrojavanjem i popularnim boxplotom.
 
 ```{r}
-ggplot(bl, aes(x = FTR, y = FTHG + FTAG)) + geom_boxplot()
+cnt <- ggplot(bl, aes(x = FTR, y = FTHG + FTAG)) + geom_count() + labs(x = "Ishod utakmice", y = "Ukupan broj golova na utakmici", title = "Odnos ishoda i ukupnog broja golova na utakmici")
+bxp <- ggplot(bl, aes(x = FTR, y = FTHG + FTAG)) + geom_boxplot() + labs(x = "Ishod utakmice", y = "Ukupan broj golova na utakmici", title = "Odnos ishoda i ukupnog broja golova na utakmici")
+grid.arrange(cnt, bxp, nrow = 1, ncol = 2)
 ```
+\pagebreak
 
+# Odabir najzanimljivijih momčadi
+
+Sljedeća dva grafa prikazat će ukupan broj golova na utakmicama kad je neka momčad domaćin/gost te će čitatelju pomoći u odabiru najvjerojatnije atraktivnih utakmica, tj. ako se na utakmicama dvaju momčadi uvijek zabija mnogo golova, vrijedi ih pogledati.
 
 ```{r}
 group_by(bl, HomeTeam) %>% summarise(Games = n(), Total = sum(FTHG + FTAG)) -> homeGoalsPerGame
-ggplot(homeGoalsPerGame, aes(x = HomeTeam, y = Total/Games)) + geom_col(aes(fill = Total/Games)) + coord_flip()
+ggplot(homeGoalsPerGame, aes(x = HomeTeam, y = Total/Games)) + geom_col(aes(fill = Total/Games)) + coord_flip() + labs(x = "Broj golova po utakmici", y = "Domacin", title = "Ukupan broj golova na utakmicama kad je momcad domacin", color = "Broj golova po utakmici")
 ```
 
+\pagebreak
 
+A zatim za gostujuće momčadi:
 
 ```{r}
 group_by(bl, AwayTeam) %>% summarise(Games = n(), Total = sum(FTHG + FTAG)) -> awayGoalsPerGame
-ggplot(awayGoalsPerGame, aes(x = AwayTeam, y = Total/Games)) + geom_col(aes(fill = Total/Games)) + coord_flip()
+ggplot(awayGoalsPerGame, aes(x = AwayTeam, y = Total/Games)) + geom_col(aes(fill = Total/Games)) + coord_flip() + labs(x = "Broj golova po utakmici", y = "Gost", title = "Ukupan broj golova na utakmicama kad je momcad gost", color = "Broj golova po utakmici")
 ```
 
+Odabiri su prilično očiti: Bayern kao domaćin te Werder i Stuttgart kao gosti garantiraju najviše golova. Činjenice potvrđuju takav odabir, Bayern je sezonu 2016/17 počeo 6:0 pobjedom protiv Werdera, sezonu prije je Stuttgart doma pobijedio 4:0, a Werder 5:0 te Stuttgart 2:0, a Werder 6:0 sezone 2014-15. To je ukupno 23 gola na 5 utakmica, tj. 4.6 gola po utakmici
